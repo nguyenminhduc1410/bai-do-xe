@@ -1,1 +1,223 @@
+#include<iostream>
+#include<vector>
+#include<string>
+#include<map>
+#include <utility>
+using namespace std;
+
+class phuongtien{
+    private:
+        string plate;
+        string thoigianvaobai;
+    public:
+        
+        phuongtien(string thoigianvaobai,string plate){
+            this->thoigianvaobai=thoigianvaobai;
+            this->plate=plate;
+        }
+        string laybienso(){
+        	return plate;
+		}
+        void in(){
+           
+            cout<<plate<<" ";
+            cout<<endl;
+        }
+};
+class parkinglot{
+    private:
+        vector<phuongtien>baixe;
+        int totalEarnings;
+    public:
+        void addxe (string thoigianvaobai,string plate){
+            baixe.push_back(phuongtien(thoigianvaobai,plate));
+        }
+        void listxe(){
+            for(int i=0;i<baixe.size();i++){
+                baixe[i].in();
+            }
+        }
+        
+		parkinglot() {
+        	totalEarnings = 0;
+    	}
+
+    	bool isDaytime(string time) {
+        	return (time >= "06:00:00" && time < "18:00:00");
+    	}
+    	
+    	bool isNighttime1(string time) {
+    	    return (time >="18:00:00" || time < "24:00:00");
+    	}
+		bool isNighttime2(string time) {
+    	    return (time >="00:00:00" || time < "06:00:00");
+    	}    
+        int countMotorcycles() {
+        int count = 0;
+        for (int i=0;i<baixe.size();i++) {
+            if (baixe[i].laybienso().substr(0, 4) != "xxxx") {
+                count++;
+            }
+        }
+        return count;
+    }
+    int calculateFee(string plate, string entryTime, string exitTime) {
+        
+        bool isBike = (plate.substr(0, 4) == "xxxx");
+
+        if (isDaytime(entryTime) && isDaytime(exitTime)) {
+            return isBike ? 1 : 3;
+        } else if (isNighttime1(entryTime) && isNighttime1(exitTime)) {
+            return isBike ? 2 : 5;
+        } else if (isNighttime1(entryTime) && isDaytime(exitTime)) {
+            return isBike ? 3 : 8;
+        }
+		else if (isNighttime1(exitTime) && isDaytime(entryTime)) {
+            return isBike ? 3 : 8;
+        }
+		else if (isNighttime2(entryTime) && isNighttime2(exitTime)) {
+            return isBike ? 2 : 5;
+        } else if (isNighttime2(entryTime) && isDaytime(exitTime)) {
+            return isBike ? 3 : 8;
+        } 
+		else if (isNighttime2(exitTime) && isDaytime(entryTime)) {
+            return isBike ? 3 : 8;
+        }
+		else { 
+            return isBike ? 5 : 13;
+        }
+
+    }
+    
+    int check (string plate){
+        
+        for(int i=0;i<baixe.size();i++){
+        	if(baixe[i].laybienso()==plate){
+        		
+        		return i;
+                
+			}
+		}
+		return -1;
+
+    }
+    int processVehicleEntry(string time, string plate) {
+    	bool check=false;
+        for(int i=0;i<baixe.size();i++){
+        	if(baixe[i].laybienso()==plate){
+        		check=true;
+			}
+		}
+		if(check==true){
+			return 0;
+		}
+		else{
+			baixe.push_back(phuongtien(time,plate));
+			return 1;
+		}
+	}
+	
+	int layxera(string time,string plate){
+	    for(int i=0;i<baixe.size();i++){
+       		if(baixe[i].laybienso()==plate){
+       			int fee=calculateFee(plate, baixe[i].laybienso(), time);
+       			totalEarnings =totalEarnings+ fee;
+       			baixe.erase(baixe.begin()+i);
+       			return 1;
+			}
+	   }
+	   return 0;
+	}
+	
+	
+	
+    int getBill(string time, string plate) {
+        for(int i=0;i<baixe.size();i++){
+        	if(baixe[i].laybienso()==plate){
+        		return calculateFee(plate, baixe[i].laybienso(), time);
+			}
+		}
+		return -1;
+    }
+    int getTotalEarnings() {
+        return totalEarnings;
+    }
+    
+};
+
+int main(){
+	parkinglot lot;
+	 
+    string line;
+    
+   
+    while (getline(cin, line) && line != "*") {
+        int spacePos=line.find(' ');
+			if(spacePos != string::npos ){
+				string time = line.substr(0, spacePos);
+				string plate = line.substr(spacePos + 1);
+				lot.addxe(time, plate);
+			}
+    }
+    
+    vector<pair<string,string>> commands;
+    while (getline(cin, line) && line != "***") {
+                int spacePos=line.find(' ');
+                string lenh=line.substr(0,spacePos);
+                string vesau=line.substr(spacePos+1);
+                commands.push_back({lenh,vesau});
+			}
+    
+    
+    for(pair<string,string>x: commands){
+    	if(x.first =="list"){
+    		lot.listxe();
+		}
+	
+		else if(x.first=="in"){
+			
+			int spacePos=x.second.find(' ');
+			if(spacePos != string::npos ){
+				string time = x.second.substr(0, spacePos);
+				string plate = x.second.substr(spacePos + 1);
+				cout<<lot.processVehicleEntry(time, plate ) << endl;
+			}
+		}
+		
+		else if(x.first=="find"){
+		    
+		    cout<<lot.check(x.second)<<endl;
+		    
+		}
+		else if(x.first=="out"){
+		   
+		    int spacePos=x.second.find(' ');
+			if(spacePos != string::npos ){
+				string time = x.second.substr(0, spacePos);
+				string plate = x.second.substr(spacePos + 1);
+				cout<<lot.layxera(time, plate) << endl;
+		    }
+		}
+		
+		else if(x.first=="cnt-moto"){
+		    cout<<lot.countMotorcycles()<<endl;
+		}
+		
+		else if(x.first=="bill"){
+	
+		    int spacePos=x.second.find(' ');
+			if(spacePos != string::npos ){
+				string time = x.second.substr(0, spacePos);
+				string plate = x.second.substr(spacePos + 1);
+				cout<<lot.getBill(time,plate)<<endl;
+		    }
+		}
+		
+		else {
+		    cout<<lot.getTotalEarnings()<<endl;
+		}
+		
+    }
+    
+}
 
