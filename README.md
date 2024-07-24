@@ -62,9 +62,9 @@ void listxe(){
 int check (string plate){
     for(int i=0;i<baixe.size();i++){
         if(baixe[i].laybienso()==plate){	
-        	return i;   
-			}
+        	return i;
 		}
+	}
 		return -1;
  }
 ```
